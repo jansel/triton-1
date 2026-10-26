@@ -263,7 +263,19 @@ def tma_skip_msg(byval_only=False):
         return "Requires advanced TMA support (NVIDIA Hopper or higher, CUDA 12.3 or higher)"
 
 
-requires_tma = pytest.mark.skipif(not supports_tma(), reason=tma_skip_msg())
+_requires_tma = None
+
+
+def __getattr__(name):
+    # requires_tma resolves lazily: supports_tma() queries the GPU, which
+    # initializes CUDA. Evaluating it at import would break no-CUDA-at-import
+    # for importers such as triton_kernels.
+    if name == "requires_tma":
+        global _requires_tma
+        if _requires_tma is None:
+            _requires_tma = pytest.mark.skipif(not supports_tma(), reason=tma_skip_msg())
+        return _requires_tma
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def default_alloc_fn(size: int, align: int, _):

@@ -105,7 +105,7 @@ def test_amd_codegen_options(arch, enable_fp_fusion, disable_opt, expected_flags
     assert len(calls) == 1
     actual_source, triple, processor, features, arguments = calls[0]
     assert actual_source == source
-    assert triple == compiler.amd.TARGET_TRIPLE
+    assert triple == compiler.amd.get_target_triple(arch)
     assert processor == arch
     assert features == ""
     assert arguments["flags"] == expected_flags
@@ -190,11 +190,11 @@ def test_amd_codegen_options_restored(option, capfd, fresh_knobs):
     options = dict(flags=[], enable_fp_fusion=True, disable_optimization=False, canonicalize_gep=False,
                    disabled_passes="", dump_ir=False, enable_timing=False)
     options[option] = True
-    compiler.compile_amdgpu(source, compiler.amd.TARGET_TRIPLE, "gfx942", "", **options)
+    compiler.compile_amdgpu(source, compiler.amd.get_target_triple("gfx942"), "gfx942", "", **options)
     assert capfd.readouterr().err
 
     options[option] = False
-    compiler.compile_amdgpu(source, compiler.amd.TARGET_TRIPLE, "gfx942", "", **options)
+    compiler.compile_amdgpu(source, compiler.amd.get_target_triple("gfx942"), "gfx942", "", **options)
     assert not capfd.readouterr().err
 
 
